@@ -11,8 +11,14 @@ class CPU:
         self.ram = [0] * 256
         # * general purpose registers
         self.reg = [0] * 8 
-        # program counter
+        # Program Counter, Address of the currently executing instruction
         self.pc = 0
+        # Instruction Register, Contains a copy of the currently executing instruction
+        # self.IR = 0
+        # Memory Address Register, holds the memory address we're reading or writing
+        self.MAR = 0
+        # Memory Data Register, holds the value to write or the value just read
+        self.MDR = 0
 
 
     def load(self):
@@ -36,12 +42,20 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
-    def ram_read(self, address):
-        address = self.ram[address]
-        return address
 
-    def ram_write(self,write_value, write_location):
-        pass
+    def ram_read(self, MAR):
+        '''
+        `ram_read()` should accept the address to read and return the value stored there.
+        '''
+        self.MAR = self.reg[MAR]
+        return self.MAR
+
+
+    def ram_write(self,MDR, MAR):
+       ''' `raw_write()` should accept a value to write, and the address to write it to.
+       '''
+       self.reg[MAR] = MDR
+       return self.reg[MAR]
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -74,6 +88,14 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        IR = 0
+        # command = program[pc]
+        while True:
+            self.trace()
+            # self.load()
+            if input() == "q":
+                sys.exit(2)
+
+
 
 

@@ -60,6 +60,36 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+  - cpu.py => Constructs a new CPU
+
+    __init__ -> to be filled out
+
+    load -> Loads program into memory
+
+    ram_read (implement) -> accepts the address and returns the value stored in there
+
+    ram_write(implement ) -> takes an argument and writes at the given  address
+
+    MAR -> holds the address that is being read or written to
+    MDR -> Holds the data that was read or the data to write
+    
+    run() -> Reads memory add from register in PC
+    IR -> a variable that carries the instruction memory
+
+    HLT -> your exit program, Stop anything where ever
+
+    LDI -> writes the value to the specific register
+
+    PRN -> Print function
+
+    Stack -> stores info temporarily 
+
+    Sub Routines -> Creates reusable functions: enables you to jump to any address with the Call instruction and return back to the place you were. 
+
+
+
+
+  - ls8.py => runs Cpu
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
@@ -67,7 +97,7 @@ but you'll have to implement those three above instructions first!
 
 ## Step 1: Add the constructor to `cpu.py`
 
-Add list properties to the `CPU` class to hold 256 bytes of memory and 8
+Add list properties to the `CPU` class to hold 256 bytes of memory and 8 
 general-purpose registers.
 
 > Hint: you can make a list of a certain number of zeros with this syntax:
@@ -108,8 +138,8 @@ value of the stack pointer.
 This is the workhorse function of the entire processor. It's the most difficult
 part to write.
 
-It needs to read the memory address that's stored in register `PC`, and store
-that result in `IR`, the _Instruction Register_. This can just be a local
+
+It needs to read the memory address that's stored in register `PC`, and store that result in `IR`, the _Instruction Register_. This can just be a local
 variable in `run()`.
 
 Some instructions requires up to the next two bytes of data _after_ the `PC` in
