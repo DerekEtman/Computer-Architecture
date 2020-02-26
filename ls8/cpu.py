@@ -2,7 +2,7 @@
 
 import sys
 
-LDI = 0b10000010
+ldi = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
 
@@ -19,62 +19,101 @@ class CPU:
         self.reg = [0] * 8 
         # Program Counter, Address of the currently executing instruction
         self.pc = 0
-        # Instruction Register, Contains a copy of the currently executing instruction
-        # self.IR = 0
+        # Sp
+        self.sp = 7
         # Memory Address Register, holds the memory address we're reading or writing
-        self.MAR = 0
+        self.mar = 0
         # Memory Data Register, holds the value to write or the value just read
-        self.MDR = 0
+        self.mdr = 0
+        # Branch table holding functions and their Opcode value
+        # self.branchtable = {}
+        # self.branchtable[0b10000010] = ldi
 
 
-    def load(self):
+
+    def load(self, filename):
         """Load a program into memory."""
+        
 
-        address = 0
+        try:
+            address = 0
+            # opening the file
+            with open(filename) as f:
+                # read through all the lines
+                for line in f:
+                    # parse out the comments
+                    comment_split = line.strip().split("#")
 
-        # For now, we've just hardcoded a program:
+                    # cast the numbers from strings into ints
+                    value = comment_split[0].strip()
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+                    # ignore any blank lines
+                    if value == "":
+                        continue
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                    num = int(value)
+                    self.ram[address] = num
+                    address += 1
+                    # print(f"Num on load {num}, self.ram {self.ram[address]}")
+
+        
+        # if there is no file
+        except FileNotFoundError:
+            # return error message
+            print("File not found")
+            # exit prog
+            sys.exit(2)
+
+        # check if file was called for load in
+        if len(sys.argv) != 2:
+            print(f"Please include file name. Ex/ python -filename-")
+            sys.exit(1)
+
+        # address = 0
+
+        # # For now, we've just hardcoded a program:
+
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # ldi R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
-    def ram_read(self, MAR):
+    def ram_read(self, mar):
         '''
         `ram_read()` should accept the address to read and return the value stored there.
         '''
 
-        # MAR holds the Address
-        # MDR holds the Value
+        # mar holds the Address
+        # mdr holds the Value
 
-        self.MDR = self.ram[MAR]
-        return self.MDR
+        self.mdr = self.ram[mar]
+        return self.mdr
 
 
-    def ram_write(self,MDR, MAR):
+    def ram_write(self,mdr, mar):
        ''' `raw_write()` should accept a value to write, and the address to write it to.
        '''
-       self.ram[MAR] = MDR
-       return self.ram[MAR]
+       self.ram[mar] = mdr
+       return self.ram[mar]
 
-    def reg_read(self, MAR):
-        self.MDR = self.reg[MAR]
-        print(f"reg_read: {self.MDR}")
+    def reg_read(self, mar):
+        self.mdr = self.reg[mar]
+        print(f"reg_read: {self.mdr}")
 
-    def reg_write(self, MAR, MDR):
-        self.reg[MAR] = MDR
-        print(f"Self.reg[{MAR}: {self.reg[MAR]}]")
-        # return self.reg[MAR]
+    def reg_write(self, mar, mdr):
+        self.reg[mar] = mdr
+        print(f"Self.reg[{mar}: {self.reg[mar]}]")
+        # return self.reg[mar]
 
 
 
@@ -112,23 +151,29 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        while True:
-            IR = self.ram[self.pc]
-            print(f"PC at start: {self.pc}, IR: {IR}")
+        i = 0
+
+        while i < 10:
+            i = 0
+            ir = self.ram[self.pc]
 
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
-            if IR == LDI:
-                print(f"\n--Running LDI--")
+            print(f"PC at start: {self.pc}, ir: {ir}")
+            print(f"{self.ram}")
+
+            if ir == ldi:
+                print(f"\n--Running ldi--")
                 # print(f"Op_a: {operand_a}, Op b: {operand_b}")
                 self.reg_write(operand_a, operand_b)
                 self.pc += 3
-            elif IR == PRN:
+                i += 1
+            elif ir == PRN:
                 print(f"\n--Printing--")
                 self.reg_read(operand_a)
                 self.pc += 2
-            elif IR == HLT:
+            elif ir == HLT:
                 print(f"\n--Stopping--")
                 sys.exit(0)
 
