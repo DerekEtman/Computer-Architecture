@@ -2,6 +2,12 @@
 
 import sys
 
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
+
+
+
 class CPU:
     """Main CPU class."""
 
@@ -47,15 +53,30 @@ class CPU:
         '''
         `ram_read()` should accept the address to read and return the value stored there.
         '''
-        self.MAR = self.reg[MAR]
-        return self.MAR
+
+        # MAR holds the Address
+        # MDR holds the Value
+
+        self.MDR = self.ram[MAR]
+        return self.MDR
 
 
     def ram_write(self,MDR, MAR):
        ''' `raw_write()` should accept a value to write, and the address to write it to.
        '''
-       self.reg[MAR] = MDR
-       return self.reg[MAR]
+       self.ram[MAR] = MDR
+       return self.ram[MAR]
+
+    def reg_read(self, MAR):
+        self.MDR = self.reg[MAR]
+        print(f"reg_read: {self.MDR}")
+
+    def reg_write(self, MAR, MDR):
+        self.reg[MAR] = MDR
+        print(f"Self.reg[{MAR}: {self.reg[MAR]}]")
+        # return self.reg[MAR]
+
+
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -65,6 +86,9 @@ class CPU:
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
+
+    def HLT(self):
+        sys.exit(0)
 
     def trace(self):
         """
@@ -88,13 +112,29 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        IR = 0
-        # command = program[pc]
         while True:
-            self.trace()
-            # self.load()
-            if input() == "q":
-                sys.exit(2)
+            IR = self.ram[self.pc]
+            print(f"PC at start: {self.pc}, IR: {IR}")
+
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            if IR == LDI:
+                print(f"\n--Running LDI--")
+                # print(f"Op_a: {operand_a}, Op b: {operand_b}")
+                self.reg_write(operand_a, operand_b)
+                self.pc += 3
+            elif IR == PRN:
+                print(f"\n--Printing--")
+                self.reg_read(operand_a)
+                self.pc += 2
+            elif IR == HLT:
+                print(f"\n--Stopping--")
+                sys.exit(0)
+
+            # if input() == "q":
+            #     print(f"Quitting")
+            #     self.HLT()
 
 
 

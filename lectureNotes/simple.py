@@ -6,14 +6,17 @@ PRINT_NUM      = 3
 SAVE           = 4  # Save a value to a register
 PRINT_REGISTER = 5  # Print the value in a register
 ADD            = 6  # ADD 2 registers, store the result in 1st reg
+PUSH           = 7
+POP            = 8
 
 
-memory = [0] * 256
+memory = [0] * 32
 
 register = [0] * 8
 
 pc = 0  # Program counter
 
+SP = 7 # Stack pointer i 
 
 def load_memory(filename):
     try:
@@ -51,6 +54,7 @@ print(memory)
 
 while True:
     command = memory[pc]
+    print
 
     if command == PRINT_BEEJ:
         print("Beej!")
@@ -76,6 +80,25 @@ while True:
         reg_b = memory[pc + 2]
         register[reg_a] += register[reg_b]
         pc += 3
+    elif command == PUSH:
+        # Grab the register arg
+        reg = memory[pc + 1]
+        val = register[reg]
+        # Decrement the SP
+        register[SP] -= 1
+        # copy the value in the given reg to the add pointed to by sp
+        memory[register[SP]] = val
+        pc += 2
+
+    elif command == POP:
+        # Grab the val from the top of the stack
+        reg = memory[pc + 1]
+        val = memory[register[SP]]
+        # copy the val rom the add pointed to by sp to the given reg
+        register[reg] = val
+        # Increment SP
+        register[SP] += 1
+        pc += 2
     elif command == HALT:
         sys.exit(0)
     else:
