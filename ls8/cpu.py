@@ -2,7 +2,7 @@
 
 import sys
 
-ldi = 0b10000010
+LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
 
@@ -25,16 +25,19 @@ class CPU:
         self.mar = 0
         # Memory Data Register, holds the value to write or the value just read
         self.mdr = 0
-        # Branch table holding functions and their Opcode value
-        # self.branchtable = {}
-        # self.branchtable[0b10000010] = ldi
+        # Branch table holding functions and the IR Opcode value
+        self.branchtable = {}
+        self.branchtable[0b10000010] = {'instruction':'LDI', 'retrieve': self.LDI_handler}
+        self.branchtable[0b01000111] = {'instruction':'PRN', 'retrieve': self.PRN_handler}
+        self.branchtable[0b00000001] = {'instruction':'HLT', 'retrieve': self.HLT_handler}
+
+    
 
 
 
     def load(self, filename):
         """Load a program into memory."""
-        
-
+        print(f"---Loading File---\n {filename}")
         try:
             address = 0
             # opening the file
@@ -51,10 +54,9 @@ class CPU:
                     if value == "":
                         continue
 
-                    num = int(value)
+                    num = int(value,2)
                     self.ram[address] = num
                     address += 1
-                    # print(f"Num on load {num}, self.ram {self.ram[address]}")
 
         
         # if there is no file
@@ -75,7 +77,7 @@ class CPU:
 
         # program = [
         #     # From print8.ls8
-        #     0b10000010, # ldi R0,8
+        #     0b10000010, # LDI R0,8
         #     0b00000000,
         #     0b00001000,
         #     0b01000111, # PRN R0
@@ -86,6 +88,20 @@ class CPU:
         # for instruction in program:
         #     self.ram[address] = instruction
         #     address += 1
+
+    def LDI_handler(self,a):
+        # print(f"Op_a: {operand_a}, Op b: {operand_b}")
+        address = self.ram_read(self.pc + 1)
+        value = self.ram_read(self.pc + 2)
+
+        self.reg_write(address, value)
+        self.pc += 3        
+
+    def PRN_handler(self,a):
+        pass
+
+    def HLT_handler(self,a):
+        pass
 
 
     def ram_read(self, mar):
@@ -123,6 +139,8 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        if op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -151,35 +169,31 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        i = 0
 
-        while i < 10:
-            i = 0
-            ir = self.ram[self.pc]
+        while True:
+
+            IR = self.ram[self.pc]
 
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
+            # print(f"PC at start: {self.pc}, IR: {IR}, operand_a: {operand_a}, operand_b : {operand_b}")
+            # print(f"{self.ram}")
+            get = self.branchtable[IR]
 
-            print(f"PC at start: {self.pc}, ir: {ir}")
-            print(f"{self.ram}")
 
-            if ir == ldi:
-                print(f"\n--Running ldi--")
-                # print(f"Op_a: {operand_a}, Op b: {operand_b}")
-                self.reg_write(operand_a, operand_b)
-                self.pc += 3
-                i += 1
-            elif ir == PRN:
-                print(f"\n--Printing--")
-                self.reg_read(operand_a)
-                self.pc += 2
-            elif ir == HLT:
-                print(f"\n--Stopping--")
-                sys.exit(0)
+            get['retrieve'](get["instruction"])
 
-            # if input() == "q":
-            #     print(f"Quitting")
-            #     self.HLT()
+            # if IR == LDI:
+            #     self.LDI_handler()
+            # elif IR == PRN:
+            #     print(f"\n--Printing--")
+            #     self.reg_read(operand_a)
+            #     self.pc += 2
+            # elif IR == HLT:
+            #     print(f"\n--Stopping--")
+            #     sys.exit(0)
+
+
 
 
 
