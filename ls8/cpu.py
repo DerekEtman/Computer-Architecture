@@ -28,12 +28,14 @@ class CPU:
         self.mar = 0
         # Memory Data Register, holds the value to write or the value just read
         self.mdr = 0
-        # Branch table holding functions and the IR Opcode value
+        # Branch table holding functions an d the IR Opcode value
         self.branchtable = {}
         self.branchtable[0b10000010] = {'instruction_name':'LDI', 'retrieve': self.LDI_handler}
         self.branchtable[0b01000111] = {'instruction_name':'PRN', 'retrieve': self.PRN_handler}
         self.branchtable[0b00000001] = {'instruction_name':'HLT', 'retrieve': self.HLT_handler}
         self.branchtable[0b10100010] = {'instruction_name':'MUL', 'retrieve': self.alu}
+        self.branchtable[0b01000101] = {'instruction_name': 'PUSH', 'retrieve': self.push_handler}
+        self.branchtable[0b01000110] = {'instruction_name' : 'POP', 'retrieve': self.pop_handler}
 
     
 
@@ -93,20 +95,63 @@ class CPU:
         #     self.ram[address] = instruction
         #     address += 1
 
+    def push_handler(self,a):
+        print(f"\n--Pushing--")
+        self.trace()
+        # Grab the register argument
+        reg = self.ram_read(self.pc + 1)
+        value = self.reg_read(reg)
+        print(f"Grabbing value: {value} from register {reg}")
+
+        # Decrement the SP
+        self.reg[self.sp] -= 1
+
+        # Copy the value in the given register to the add pointer by the sp
+        self.ram[self.reg[self.sp]] = value
+        print(f"Placing value: {value} at location {self.ram}")
+        self.pc += 2
+
+        # print(f", value: {value},\n  self.reg {self.reg},\n  self.ram{self.ram}") 
+        self.trace()
+
+
+    def pop_handler(self,a):
+        print(f"\n--Popping--")
+        self.trace()
+        # grab the val from the top of the stack
+        reg = self.ram_read(self.pc + 1)
+        value = self.ram[self.reg[self.sp]]
+        # print(f"Grabbing Value {value} from sp Location: {reg}")
+
+
+        # Copy the value from the address pointed to by `SP` to the given register
+        self.reg[reg] = value
+
+        # increment SP
+        self.reg[self.sp] += 1
+        self.pc += 2
+
+        # print(f"reg: {reg}, value: {value}, updated reg: {self.reg[reg]}")
+        self.trace()
+
+
     def LDI_handler(self,a):
         print(f"\n--Running LDI--")
+        self.trace()
         # print(f"Op_a: {operand_a}, Op b: {operand_b}")
         address = self.ram_read(self.pc + 1)
         value = self.ram_read(self.pc + 2)
 
         self.reg_write(address, value)
-        self.pc += 3        
+        self.pc += 3
+        self.trace()        
 
     def PRN_handler(self,a):
         print(f"\n--Printing--")
         address = self.ram_read(self.pc + 1)
 
-        self.reg_read(address)
+        print( self.reg_read(address))
+        
         self.pc += 2
 
     def HLT_handler(self,a):
@@ -138,7 +183,7 @@ class CPU:
 
     def reg_write(self, mar, mdr):
         self.reg[mar] = mdr
-        print(f"Self.reg[{mar}: {self.reg[mar]}]")
+        print(f"{self.reg[mar]}")
         # return self.reg[mar]
 
 
@@ -174,7 +219,7 @@ class CPU:
         from run() if you need help debugging.
         """
 
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
+        print(f"TRACE: %02X |  %02X %02X %02X | " % (
             self.pc,
             #self.fl,
             #self.ie,

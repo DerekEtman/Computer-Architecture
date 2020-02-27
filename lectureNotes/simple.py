@@ -8,6 +8,8 @@ PRINT_REGISTER = 5  # Print the value in a register
 ADD            = 6  # ADD 2 registers, store the result in 1st reg
 PUSH           = 7
 POP            = 8
+CALL           = 9
+RET            = 10
 
 
 memory = [0] * 32
@@ -54,7 +56,7 @@ print(memory)
 
 while True:
     command = memory[pc]
-    print
+    print(f"{pc} - {memory}")
 
     if command == PRINT_BEEJ:
         print("Beej!")
@@ -80,6 +82,8 @@ while True:
         reg_b = memory[pc + 2]
         register[reg_a] += register[reg_b]
         pc += 3
+
+
     elif command == PUSH:
         # Grab the register arg
         reg = memory[pc + 1]
@@ -90,6 +94,7 @@ while True:
         memory[register[SP]] = val
         pc += 2
 
+
     elif command == POP:
         # Grab the val from the top of the stack
         reg = memory[pc + 1]
@@ -99,6 +104,24 @@ while True:
         # Increment SP
         register[SP] += 1
         pc += 2
+
+    elif command == CALL:
+        # The address of the instruction diretly after call
+        # is pushed onto the stack
+        register[SP] -=1
+        memory[register[SP]] = pc + 2
+        # this allows us to return to where we left off
+        # when the subroutine finishes executing
+        # The PC is set to the address stored in the given register
+        reg = memory[pc + 1]
+        pc = register[reg]
+        # We jump to that lopcation in RAM and execute the first
+        # instruction in the subroutine, the PC can move forward or backwards from its current location
+    elif command == RET:
+        # Return from subroutine
+        # Pop the value from the top of the stack and store it in the PC
+        pc = memory[register[SP]]
+        register[SP] += 1
     elif command == HALT:
         sys.exit(0)
     else:
